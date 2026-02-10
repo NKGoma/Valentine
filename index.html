@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Valentine's Minesweeper 💕</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💕 Valentine's Minesweeper 💕</h1>
+        <p class="subtitle">Find all the safe squares... but watch out!</p>
+
+        <div class="controls">
+            <div class="difficulty-selector">
+                <button class="diff-btn active" data-difficulty="easy">Easy (8×8)</button>
+                <button class="diff-btn" data-difficulty="medium">Medium (12×12)</button>
+                <button class="diff-btn" data-difficulty="hard">Hard (16×16)</button>
+            </div>
+            <div class="game-info">
+                <div class="info-box">
+                    <span id="bomb-count">💖 10</span>
+                </div>
+                <button id="reset-btn" class="reset-btn">New Game</button>
+                <div class="info-box">
+                    <span id="timer">⏱ 0:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-board" class="game-board"></div>
+
+        <!-- Overlay that shows when you hit a "bomb" -->
+        <div id="bomb-overlay" class="overlay hidden">
+            <div class="overlay-content bomb-reveal">
+                <img id="partner-photo" src="partner.png" alt="You da bomb!" class="partner-img"
+                     onerror="this.style.display='none'; document.getElementById('fallback-heart').style.display='block';">
+                <div id="fallback-heart" class="fallback-heart" style="display:none;">💖</div>
+                <h2>You da bomb! 💣💕</h2>
+                <p class="overlay-sub">Game Over — but you're still the best!</p>
+                <button class="overlay-btn" onclick="closeOverlay(); resetGame();">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Overlay that shows when you win -->
+        <div id="win-overlay" class="overlay hidden">
+            <div class="overlay-content win-reveal">
+                <div class="win-emoji">🎉💕🎉</div>
+                <h2>You swept me off my feet!</h2>
+                <p class="overlay-sub">You cleared the board! Happy Valentine's Day!</p>
+                <button class="overlay-btn" onclick="closeOverlay(); resetGame();">Play Again</button>
+            </div>
+        </div>
+
+        <p class="instructions">
+            <strong>How to play:</strong> Left-click to reveal a square. Right-click (or long-press) to flag.
+            <br>Clear all safe squares to win — but click a 💖 and... well... 😏
+        </p>
+    </div>
+
+    <div class="floating-hearts" aria-hidden="true"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
