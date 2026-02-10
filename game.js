@@ -15,6 +15,24 @@ let firstClick = true;
 let timerInterval = null;
 let seconds = 0;
 
+// ===== Partner photos (1–10) =====
+const TOTAL_PHOTOS = 10;
+const photoList = [];
+for (let i = 1; i <= TOTAL_PHOTOS; i++) {
+    photoList.push(`photos/photo${i}.png`);
+}
+let lastPhotoIndex = -1;
+
+function getRandomPhoto() {
+    // Pick a random photo, avoiding the same one twice in a row
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * photoList.length);
+    } while (idx === lastPhotoIndex && photoList.length > 1);
+    lastPhotoIndex = idx;
+    return photoList[idx];
+}
+
 // ===== DOM references =====
 const boardEl    = document.getElementById('game-board');
 const bombCountEl = document.getElementById('bomb-count');
@@ -245,6 +263,12 @@ function revealCell(r, c) {
         clearInterval(timerInterval);
         revealAllMines();
         setTimeout(() => {
+            // Show a random partner photo
+            const photoEl = document.getElementById('partner-photo');
+            const fallback = document.getElementById('fallback-heart');
+            photoEl.style.display = '';
+            fallback.style.display = 'none';
+            photoEl.src = getRandomPhoto();
             bombOverlay.classList.remove('hidden');
         }, 600);
         return;

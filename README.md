@@ -9,20 +9,30 @@ A Valentine's Day themed Minesweeper game. Click the squares, avoid the bombs �
 3. Right-click (or long-press on mobile) to flag a suspected bomb
 4. Clear all safe squares to win!
 
-## Adding Your Partner's Photo
+## Adding Your Partner's Photos
 
-1. Add an image file named **`partner.png`** to the root of this repository (same folder as `index.html`)
-2. Commit and push:
+The game shows a **random photo** each time you hit a bomb — up to 10 different ones!
+
+1. Create a **`photos/`** folder in the root of this repository
+2. Add up to 10 images named:
+   ```
+   photos/photo1.png
+   photos/photo2.png
+   photos/photo3.png
+   ...
+   photos/photo10.png
+   ```
+3. Commit and push:
    ```bash
-   git add partner.png
-   git commit -m "Add partner photo"
+   git add photos/
+   git commit -m "Add partner photos"
    git push
    ```
-3. That's it! The game will automatically display the photo when a bomb is clicked
+4. Every time a bomb is hit, a different photo will appear!
 
-**Supported formats:** PNG works best, but you can also use JPG — just rename it to `partner.png` or update the `src` in `index.html`.
+**Supported formats:** PNG works best, but you can also use JPG — just rename them to `.png`.
 
-If no photo is found, a heart emoji will appear instead.
+If no photos are found, a heart emoji will appear as a fallback.
 
 ## Deploying with GitHub Pages
 
