@@ -365,6 +365,49 @@ function createFloatingHearts() {
     }
 }
 
+// ===== Background Music (YouTube) =====
+let ytPlayer = null;
+let musicPlaying = false;
+const musicBtn = document.getElementById('music-btn');
+
+// Called automatically by the YouTube IFrame API once it's ready
+window.onYouTubeIframeAPIReady = function () {
+    ytPlayer = new YT.Player('yt-player', {
+        height: '0',
+        width: '0',
+        videoId: 'xfCuibCm0-w',
+        playerVars: {
+            autoplay: 0,
+            loop: 1,
+            playlist: 'xfCuibCm0-w', // required for loop to work
+        },
+        events: {
+            onStateChange: function (e) {
+                // If video ended unexpectedly, restart
+                if (e.data === YT.PlayerState.ENDED) {
+                    ytPlayer.playVideo();
+                }
+            }
+        }
+    });
+};
+
+musicBtn.addEventListener('click', () => {
+    if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
+
+    if (musicPlaying) {
+        ytPlayer.pauseVideo();
+        musicBtn.textContent = '\uD83D\uDD07';
+        musicBtn.classList.remove('playing');
+        musicPlaying = false;
+    } else {
+        ytPlayer.playVideo();
+        musicBtn.textContent = '\uD83C\uDFB5';
+        musicBtn.classList.add('playing');
+        musicPlaying = true;
+    }
+});
+
 // ===== Start =====
 createFloatingHearts();
 initGame();
