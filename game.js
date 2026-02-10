@@ -370,19 +370,108 @@ function showWinOverlay() {
         photoEl.style.display = '';
         fallback.style.display = 'none';
         winOverlay.classList.remove('hidden');
+        launchFireworks();
     };
     testImg.onerror = function () {
         photoEl.style.display = 'none';
         fallback.style.display = '';
         winOverlay.classList.remove('hidden');
+        launchFireworks();
     };
     testImg.src = 'photos/win.png';
+}
+
+// ===== Fireworks =====
+let fireworksInterval = null;
+
+function launchFireworks() {
+    const container = document.getElementById('fireworks-container');
+    container.innerHTML = '';
+
+    // Launch several rounds of fireworks
+    let rounds = 0;
+    const maxRounds = 8;
+
+    function spawnFirework() {
+        if (rounds >= maxRounds) {
+            clearInterval(fireworksInterval);
+            fireworksInterval = null;
+            return;
+        }
+        rounds++;
+
+        const x = 15 + Math.random() * 70; // 15%-85% from left
+        const y = 10 + Math.random() * 40; // 10%-50% from top
+
+        // Trail rising up
+        const trail = document.createElement('div');
+        trail.className = 'firework-trail';
+        trail.style.left = x + '%';
+        trail.style.bottom = '0';
+        trail.style.setProperty('--h', (100 - y) + 'vh');
+        trail.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        container.appendChild(trail);
+
+        // Burst after trail rises
+        setTimeout(() => {
+            trail.remove();
+            createBurst(container, x, y);
+        }, 500);
+    }
+
+    // First one immediately, then staggered
+    spawnFirework();
+    fireworksInterval = setInterval(spawnFirework, 600);
+}
+
+function createBurst(container, x, y) {
+    const colors = ['#ff6987', '#ffd700', '#ff4081', '#e040fb', '#7c4dff', '#00e5ff', '#fce4ec', '#ff8a80'];
+    const particleCount = 24 + Math.floor(Math.random() * 12);
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework-particle';
+
+        const angle = (i / particleCount) * 360 + (Math.random() * 20 - 10);
+        const distance = 60 + Math.random() * 100;
+        const rad = angle * Math.PI / 180;
+        const tx = Math.cos(rad) * distance;
+        const ty = Math.sin(rad) * distance;
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const size = 3 + Math.random() * 5;
+
+        particle.style.left = x + '%';
+        particle.style.top = y + '%';
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.background = color;
+        particle.style.boxShadow = `0 0 ${size}px ${color}`;
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.animationDuration = (0.8 + Math.random() * 0.6) + 's';
+
+        container.appendChild(particle);
+
+        // Clean up after animation
+        setTimeout(() => particle.remove(), 1400);
+    }
+}
+
+function stopFireworks() {
+    if (fireworksInterval) {
+        clearInterval(fireworksInterval);
+        fireworksInterval = null;
+    }
+    const container = document.getElementById('fireworks-container');
+    if (container) container.innerHTML = '';
 }
 
 // ===== Overlays =====
 function closeOverlay() {
     bombOverlay.classList.add('hidden');
     winOverlay.classList.add('hidden');
+    stopFireworks();
 }
 
 // ===== Reset =====

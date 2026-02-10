@@ -43,10 +43,26 @@
 
         <!-- Overlay that shows when you win -->
         <div id="win-overlay" class="overlay hidden">
+            <div id="fireworks-container" class="fireworks-container"></div>
             <div class="overlay-content win-reveal">
-                <img id="win-photo" alt="You swept me off my feet!" class="partner-img" style="display:none;">
-                <div id="win-fallback" class="win-emoji">🎉💕🎉</div>
-                <h2>You swept me off my feet!</h2>
+                <div class="heart-frame">
+                    <div class="heart-shape">
+                        <img id="win-photo" alt="You swept me off my feet!" class="heart-photo" style="display:none;">
+                        <div id="win-fallback" class="heart-fallback">💕</div>
+                    </div>
+                    <div class="heart-glow"></div>
+                    <div class="sparkle-ring">
+                        <span class="sparkle" style="--i:0;"></span>
+                        <span class="sparkle" style="--i:1;"></span>
+                        <span class="sparkle" style="--i:2;"></span>
+                        <span class="sparkle" style="--i:3;"></span>
+                        <span class="sparkle" style="--i:4;"></span>
+                        <span class="sparkle" style="--i:5;"></span>
+                        <span class="sparkle" style="--i:6;"></span>
+                        <span class="sparkle" style="--i:7;"></span>
+                    </div>
+                </div>
+                <h2 class="win-title">You swept me off my feet!</h2>
                 <p class="overlay-sub">You cleared the board! Happy Valentine's Day!</p>
                 <button class="overlay-btn" onclick="closeOverlay(); resetGame();">Play Again</button>
             </div>
