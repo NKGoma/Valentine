@@ -317,6 +317,7 @@ function revealAllMines() {
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             if (board[r][c].mine && !board[r][c].revealed) {
+                board[r][c].revealed = true;
                 const cellEl = getCellEl(r, c);
                 cellEl.classList.add('revealed', 'mine-cell', 'mine-reveal');
                 cellEl.textContent = '\uD83D\uDC96';
