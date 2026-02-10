@@ -7,7 +7,7 @@ const DIFFICULTIES = {
 
 let difficulty = 'easy';
 let rows, cols, totalMines;
-let board = [];       // 2D array of cell data
+let board = [];
 let revealed = 0;
 let flagCount = 0;
 let gameOver = false;
@@ -24,6 +24,23 @@ const bombOverlay = document.getElementById('bomb-overlay');
 const winOverlay  = document.getElementById('win-overlay');
 const diffBtns   = document.querySelectorAll('.diff-btn');
 
+// ===== Calculate cell size to fit screen =====
+function getCellSize() {
+    // Available width = viewport minus container padding (10px each side) minus board padding (6px each side) minus board border (2px each side)
+    const availableWidth = window.innerWidth - 20 - 12 - 4;
+    // Total gap space = (cols - 1) * 2px gap
+    const gapSpace = (cols - 1) * 2;
+    const maxByWidth = Math.floor((availableWidth - gapSpace) / cols);
+
+    // Also limit by height: leave room for header/controls/instructions (~220px)
+    const availableHeight = window.innerHeight - 240;
+    const vGapSpace = (rows - 1) * 2;
+    const maxByHeight = Math.floor((availableHeight - vGapSpace) / rows);
+
+    // Clamp between 22px and 40px
+    return Math.max(22, Math.min(40, maxByWidth, maxByHeight));
+}
+
 // ===== Init =====
 function initGame() {
     const config = DIFFICULTIES[difficulty];
@@ -39,10 +56,9 @@ function initGame() {
     seconds = 0;
     clearInterval(timerInterval);
     timerInterval = null;
-    timerEl.textContent = '⏱ 0:00';
-    bombCountEl.textContent = '💖 ' + totalMines;
+    timerEl.textContent = '\u23F1 0:00';
+    bombCountEl.textContent = '\uD83D\uDC96 ' + totalMines;
 
-    // Create board data
     for (let r = 0; r < rows; r++) {
         board[r] = [];
         for (let c = 0; c < cols; c++) {
@@ -64,16 +80,12 @@ function placeMines(safeR, safeC) {
     while (placed < totalMines) {
         const r = Math.floor(Math.random() * rows);
         const c = Math.floor(Math.random() * cols);
-
-        // Don't place on the first-clicked cell or its neighbors
         if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
         if (board[r][c].mine) continue;
-
         board[r][c].mine = true;
         placed++;
     }
 
-    // Calculate neighbor counts
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             if (board[r][c].mine) continue;
@@ -89,10 +101,10 @@ function placeMines(safeR, safeC) {
 // ===== Render =====
 function renderBoard() {
     boardEl.innerHTML = '';
-    boardEl.style.gridTemplateColumns = `repeat(${cols}, 36px)`;
+    const cellSize = getCellSize();
+    const fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
+    const flagSize = cellSize <= 26 ? '0.7rem' : '1rem';
 
-    // Adjust cell size for larger boards
-    const cellSize = cols > 12 ? 28 : 36;
     boardEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
 
     for (let r = 0; r < rows; r++) {
@@ -101,33 +113,59 @@ function renderBoard() {
             cell.className = 'cell';
             cell.dataset.row = r;
             cell.dataset.col = c;
+            cell.style.width = cellSize + 'px';
+            cell.style.height = cellSize + 'px';
+            cell.style.fontSize = fontSize;
 
-            if (cellSize < 36) {
-                cell.style.width = cellSize + 'px';
-                cell.style.height = cellSize + 'px';
-                cell.style.fontSize = '0.75rem';
-            }
+            // Desktop click
+            cell.addEventListener('click', (e) => {
+                // Ignore clicks that came from a touch (handled separately)
+                if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+                handleClick(r, c);
+            });
 
-            cell.addEventListener('click', () => handleClick(r, c));
             cell.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 handleRightClick(r, c);
             });
 
-            // Long-press for mobile
-            let pressTimer;
+            // Mobile touch handling
+            let pressTimer = null;
+            let didLongPress = false;
+            let touchMoved = false;
+
             cell.addEventListener('touchstart', (e) => {
+                touchMoved = false;
+                didLongPress = false;
                 pressTimer = setTimeout(() => {
-                    e.preventDefault();
+                    didLongPress = true;
                     handleRightClick(r, c);
                 }, 400);
-            }, { passive: false });
-            cell.addEventListener('touchend', () => clearTimeout(pressTimer));
-            cell.addEventListener('touchmove', () => clearTimeout(pressTimer));
+            }, { passive: true });
+
+            cell.addEventListener('touchmove', () => {
+                touchMoved = true;
+                clearTimeout(pressTimer);
+            }, { passive: true });
+
+            cell.addEventListener('touchend', (e) => {
+                clearTimeout(pressTimer);
+                if (touchMoved) return;
+                if (didLongPress) {
+                    // Already handled as flag — prevent the click
+                    e.preventDefault();
+                    return;
+                }
+                // Short tap — treat as reveal
+                handleClick(r, c);
+            });
 
             boardEl.appendChild(cell);
         }
     }
+
+    // Store flagSize for use when flagging
+    boardEl.dataset.flagSize = flagSize;
 }
 
 // ===== Get cell DOM element =====
@@ -155,7 +193,6 @@ function handleClick(r, c) {
     const data = board[r][c];
     if (data.revealed || data.flagged) return;
 
-    // First click: place mines and start timer
     if (firstClick) {
         firstClick = false;
         placeMines(r, c);
@@ -172,16 +209,23 @@ function handleRightClick(r, c) {
 
     data.flagged = !data.flagged;
     const cellEl = getCellEl(r, c);
+    const flagSize = boardEl.dataset.flagSize || '1rem';
 
     if (data.flagged) {
         cellEl.classList.add('flagged');
+        cellEl.textContent = '\uD83D\uDEA9';
+        cellEl.style.fontSize = flagSize;
         flagCount++;
     } else {
         cellEl.classList.remove('flagged');
+        cellEl.textContent = '';
+        // Restore number font size
+        const cellSize = parseInt(cellEl.style.width);
+        cellEl.style.fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
         flagCount--;
     }
 
-    bombCountEl.textContent = '💖 ' + (totalMines - flagCount);
+    bombCountEl.textContent = '\uD83D\uDC96 ' + (totalMines - flagCount);
 }
 
 // ===== Reveal logic =====
@@ -195,9 +239,8 @@ function revealCell(r, c) {
     cellEl.classList.add('revealed');
 
     if (data.mine) {
-        // BOOM — show all mines, then overlay
         cellEl.classList.add('mine-cell');
-        cellEl.textContent = '💖';
+        cellEl.textContent = '\uD83D\uDC96';
         gameOver = true;
         clearInterval(timerInterval);
         revealAllMines();
@@ -211,13 +254,11 @@ function revealCell(r, c) {
         cellEl.textContent = data.count;
         cellEl.dataset.count = data.count;
     } else {
-        // Flood-fill empty cells
         forEachNeighbor(r, c, (nr, nc) => {
             revealCell(nr, nc);
         });
     }
 
-    // Check win condition
     if (revealed === rows * cols - totalMines) {
         gameOver = true;
         clearInterval(timerInterval);
@@ -233,7 +274,7 @@ function revealAllMines() {
             if (board[r][c].mine && !board[r][c].revealed) {
                 const cellEl = getCellEl(r, c);
                 cellEl.classList.add('revealed', 'mine-cell', 'mine-reveal');
-                cellEl.textContent = '💖';
+                cellEl.textContent = '\uD83D\uDC96';
                 cellEl.classList.remove('flagged');
             }
         }
@@ -246,7 +287,7 @@ function startTimer() {
         seconds++;
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
-        timerEl.textContent = `⏱ ${m}:${s.toString().padStart(2, '0')}`;
+        timerEl.textContent = `\u23F1 ${m}:${s.toString().padStart(2, '0')}`;
     }, 1000);
 }
 
@@ -274,10 +315,19 @@ diffBtns.forEach(btn => {
 
 resetBtn.addEventListener('click', resetGame);
 
+// ===== Resize handler =====
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (!gameOver) renderBoard();
+    }, 200);
+});
+
 // ===== Floating hearts background =====
 function createFloatingHearts() {
     const container = document.querySelector('.floating-hearts');
-    const hearts = ['💕', '💖', '💗', '💘', '♥', '❤'];
+    const hearts = ['\uD83D\uDC95', '\uD83D\uDC96', '\uD83D\uDC97', '\uD83D\uDC98', '\u2665', '\u2764'];
 
     for (let i = 0; i < 15; i++) {
         const heart = document.createElement('span');
