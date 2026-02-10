@@ -263,13 +263,7 @@ function revealCell(r, c) {
         clearInterval(timerInterval);
         revealAllMines();
         setTimeout(() => {
-            // Show a random partner photo
-            const photoEl = document.getElementById('partner-photo');
-            const fallback = document.getElementById('fallback-heart');
-            photoEl.style.display = '';
-            fallback.style.display = 'none';
-            photoEl.src = getRandomPhoto();
-            bombOverlay.classList.remove('hidden');
+            showBombOverlay();
         }, 600);
         return;
     }
@@ -313,6 +307,28 @@ function startTimer() {
         const s = seconds % 60;
         timerEl.textContent = `\u23F1 ${m}:${s.toString().padStart(2, '0')}`;
     }, 1000);
+}
+
+// ===== Bomb overlay with photo loading =====
+function showBombOverlay() {
+    const photoEl = document.getElementById('partner-photo');
+    const fallback = document.getElementById('fallback-heart');
+    const src = getRandomPhoto();
+
+    // Try loading the image; show fallback if it fails
+    const testImg = new Image();
+    testImg.onload = function () {
+        photoEl.src = src;
+        photoEl.style.display = '';
+        fallback.style.display = 'none';
+        bombOverlay.classList.remove('hidden');
+    };
+    testImg.onerror = function () {
+        photoEl.style.display = 'none';
+        fallback.style.display = '';
+        bombOverlay.classList.remove('hidden');
+    };
+    testImg.src = src;
 }
 
 // ===== Overlays =====
