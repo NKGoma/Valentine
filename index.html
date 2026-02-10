@@ -44,7 +44,8 @@
         <!-- Overlay that shows when you win -->
         <div id="win-overlay" class="overlay hidden">
             <div class="overlay-content win-reveal">
-                <div class="win-emoji">🎉💕🎉</div>
+                <img id="win-photo" alt="You swept me off my feet!" class="partner-img" style="display:none;">
+                <div id="win-fallback" class="win-emoji">🎉💕🎉</div>
                 <h2>You swept me off my feet!</h2>
                 <p class="overlay-sub">You cleared the board! Happy Valentine's Day!</p>
                 <button class="overlay-btn" onclick="closeOverlay(); resetGame();">Play Again</button>

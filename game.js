@@ -308,7 +308,7 @@ function revealCell(r, c) {
         gameOver = true;
         clearInterval(timerInterval);
         setTimeout(() => {
-            winOverlay.classList.remove('hidden');
+            showWinOverlay();
         }, 300);
     }
 }
@@ -357,6 +357,26 @@ function showBombOverlay() {
         bombOverlay.classList.remove('hidden');
     };
     testImg.src = src;
+}
+
+// ===== Win overlay with photo loading =====
+function showWinOverlay() {
+    const photoEl = document.getElementById('win-photo');
+    const fallback = document.getElementById('win-fallback');
+
+    const testImg = new Image();
+    testImg.onload = function () {
+        photoEl.src = 'photos/win.png';
+        photoEl.style.display = '';
+        fallback.style.display = 'none';
+        winOverlay.classList.remove('hidden');
+    };
+    testImg.onerror = function () {
+        photoEl.style.display = 'none';
+        fallback.style.display = '';
+        winOverlay.classList.remove('hidden');
+    };
+    testImg.src = 'photos/win.png';
 }
 
 // ===== Overlays =====
