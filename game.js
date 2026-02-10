@@ -186,6 +186,33 @@ function renderBoard() {
     boardEl.dataset.flagSize = flagSize;
 }
 
+// ===== Sync DOM to board state (after re-render) =====
+function syncBoardState() {
+    const flagSize = boardEl.dataset.flagSize || '1rem';
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const data = board[r][c];
+            const cellEl = getCellEl(r, c);
+            if (!cellEl) continue;
+
+            if (data.revealed) {
+                cellEl.classList.add('revealed');
+                if (data.mine) {
+                    cellEl.classList.add('mine-cell');
+                    cellEl.textContent = '\uD83D\uDC96';
+                } else if (data.count > 0) {
+                    cellEl.textContent = data.count;
+                    cellEl.dataset.count = data.count;
+                }
+            } else if (data.flagged) {
+                cellEl.classList.add('flagged');
+                cellEl.textContent = '\uD83D\uDEA9';
+                cellEl.style.fontSize = flagSize;
+            }
+        }
+    }
+}
+
 // ===== Get cell DOM element =====
 function getCellEl(r, c) {
     return boardEl.children[r * cols + c];
@@ -356,11 +383,28 @@ diffBtns.forEach(btn => {
 resetBtn.addEventListener('click', resetGame);
 
 // ===== Resize handler =====
+// Only resize cells in-place — don't recreate the board and lose game state
 let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (!gameOver) renderBoard();
+        const cellSize = getCellSize();
+        const fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
+        const flagSize = cellSize <= 26 ? '0.7rem' : '1rem';
+        boardEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+        boardEl.dataset.flagSize = flagSize;
+
+        for (let i = 0; i < boardEl.children.length; i++) {
+            const cell = boardEl.children[i];
+            cell.style.width = cellSize + 'px';
+            cell.style.height = cellSize + 'px';
+            // Flagged cells keep their flag size, others get number size
+            if (cell.classList.contains('flagged')) {
+                cell.style.fontSize = flagSize;
+            } else {
+                cell.style.fontSize = fontSize;
+            }
+        }
     }, 200);
 });
 
