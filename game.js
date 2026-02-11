@@ -46,17 +46,18 @@ const diffBtns   = document.querySelectorAll('.diff-btn');
 function getCellSize() {
     // Available width = viewport minus container padding (10px each side) minus board padding (6px each side) minus board border (2px each side)
     const availableWidth = window.innerWidth - 20 - 12 - 4;
-    // Total gap space = (cols - 1) * 2px gap
-    const gapSpace = (cols - 1) * 2;
+    // Smaller gap for bigger boards
+    const gap = cols > 12 ? 1 : 2;
+    const gapSpace = (cols - 1) * gap;
     const maxByWidth = Math.floor((availableWidth - gapSpace) / cols);
 
     // Also limit by height: leave room for header/controls/instructions (~220px)
     const availableHeight = window.innerHeight - 240;
-    const vGapSpace = (rows - 1) * 2;
+    const vGapSpace = (rows - 1) * gap;
     const maxByHeight = Math.floor((availableHeight - vGapSpace) / rows);
 
-    // Clamp between 22px and 40px
-    return Math.max(22, Math.min(40, maxByWidth, maxByHeight));
+    // Clamp between 16px and 40px
+    return Math.max(16, Math.min(40, maxByWidth, maxByHeight));
 }
 
 // ===== Init =====
@@ -120,9 +121,11 @@ function placeMines(safeR, safeC) {
 function renderBoard() {
     boardEl.innerHTML = '';
     const cellSize = getCellSize();
-    const fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
-    const flagSize = cellSize <= 26 ? '0.7rem' : '1rem';
+    const fontSize = cellSize <= 20 ? '0.5rem' : cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
+    const flagSize = cellSize <= 20 ? '0.55rem' : cellSize <= 26 ? '0.7rem' : '1rem';
 
+    const gap = cols > 12 ? 1 : 2;
+    boardEl.style.gap = gap + 'px';
     boardEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
 
     for (let r = 0; r < rows; r++) {
@@ -266,7 +269,7 @@ function handleRightClick(r, c) {
         cellEl.textContent = '';
         // Restore number font size
         const cellSize = parseInt(cellEl.style.width);
-        cellEl.style.fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
+        cellEl.style.fontSize = cellSize <= 20 ? '0.5rem' : cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
         flagCount--;
     }
 
@@ -499,8 +502,8 @@ window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         const cellSize = getCellSize();
-        const fontSize = cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
-        const flagSize = cellSize <= 26 ? '0.7rem' : '1rem';
+        const fontSize = cellSize <= 20 ? '0.5rem' : cellSize <= 26 ? '0.65rem' : cellSize <= 32 ? '0.78rem' : '0.9rem';
+        const flagSize = cellSize <= 20 ? '0.55rem' : cellSize <= 26 ? '0.7rem' : '1rem';
         boardEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
         boardEl.dataset.flagSize = flagSize;
 
